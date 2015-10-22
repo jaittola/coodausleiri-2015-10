@@ -2,14 +2,15 @@
 
 (require racket/udp)
 (require racket/match)
+(require racket/cmdline)
 
 (require "json-util.rkt")
 
-(define game-name "Raketti Botti")
-(define game-id "rakettigame")
-(define game-color "red")
-(define remote-addr "127.0.0.1")
-(define remote-port 4567)
+(define game-name (make-parameter "Raketti Botti"))
+(define game-id (make-parameter "rakettigame"))
+(define game-color (make-parameter "red"))
+(define remote-addr (make-parameter "127.0.0.1"))
+(define remote-port (make-parameter 4567))
 
 (struct game-data (name
                    id
@@ -23,12 +24,12 @@
 
 ;; mm.
 (define (init-game-data)
-  (game-data game-name
-             game-id
-             game-color
+  (game-data (game-name)
+             (game-id)
+             (game-color)
              -1
-             remote-addr
-             remote-port
+             (remote-addr)
+             (remote-port)
              ""
              -1
              (udp-open-socket)))
@@ -129,4 +130,11 @@
     (udp-send-to (game-data-socket gd) addr port bytes)))
 
 (module+ main
+  (command-line
+   #:once-each
+   [("-n" "--name") n "Game name" (game-name n)]
+   [("-i" "--id") i "Game id" (game-id i)]
+   [("-c" "--color") c "Color" (game-color c)]
+   [("-a" "--addr") a "Remote address" (remote-addr a)]
+   [("-p" "--port") p "Remote port" (remote-port (string->number p))])
   (run-game))
